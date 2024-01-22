@@ -1,0 +1,25 @@
+---
+version: '3.9'
+services:
+  vertex-ai-billing:
+    container_name: vertex-ai-billing
+    image: gcr.io/${GCP_PROJECT:-local}/vertex-ai-billing:${IMAGE_TAG:-latest}
+    # required because this image is being built for
+    # cloud run which does not run ARM images
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    restart: always
+    ports:
+    - 8080:8080
+    volumes:
+      # uses the current user's creds for google application
+      # default credentials to talk to google cloud apis
+    - $HOME/.config/gcloud:/root/.config/gcloud
+    environment:
+      # Google Cloud application default credentials
+      GOOGLE_APPLICATION_CREDENTIALS: /root/.config/gcloud/application_default_credentials.json
+      BIGQUERY_DATASET: ${VERTEX_AI_BILLING_SERVICE_BIGQUERY_DATASET}
+    env_file:
+    - .env
