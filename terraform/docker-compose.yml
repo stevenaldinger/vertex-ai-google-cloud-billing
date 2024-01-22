@@ -1,0 +1,25 @@
+---
+version: '3.9'
+services:
+  terraform:
+    container_name: terraform
+    # https://hub.docker.com/r/hashicorp/terraform/tags
+    image: hashicorp/terraform:1.6.5
+    env_file:
+    - ../.env
+    working_dir: /mnt/terraform
+    # map env vars from .env to TF_VAR_* so terraform can use them
+    environment:
+      # Google Cloud project with billing enabled
+      TF_VAR_gcp_project_id: ${GCP_PROJECT}
+      # Google Cloud region for Vertex AI
+      TF_VAR_gcp_region: ${GCP_REGION}
+      # Docker image to use for the gemini-streamlit service
+      TF_VAR_vertex_ai_billing_service_image: "${VERTEX_AI_BILLING_SERVICE_IMAGE}"
+      # BigQuery dataset to look for billing data in
+      TF_VAR_vertex_ai_billing_service_bigquery_dataset: "${VERTEX_AI_BILLING_SERVICE_BIGQUERY_DATASET}"
+    volumes:
+    # makes the local terraform code available inside the container
+    - .:/mnt/terraform
+    # makes the current user's credentials available inside the container
+    - ${HOME}/.config/gcloud:/root/.config/gcloud
