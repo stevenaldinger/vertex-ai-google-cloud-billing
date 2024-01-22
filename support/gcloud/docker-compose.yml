@@ -1,0 +1,16 @@
+---
+version: '3.9'
+services:
+  gcloud:
+    container_name: gcloud
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli
+    env_file:
+    - ../../.env
+    working_dir: /mnt/project
+    volumes:
+    # makes the current user's credentials available inside the container
+    - ${HOME}/.config/gcloud/:/root/.config/gcloud/
+    # makes the current user's docker config available inside the container
+    - ${HOME}/.docker/:/root/.docker/
+    # used for helper script and to replace env vars in config files
+    - ../..:/mnt/project
