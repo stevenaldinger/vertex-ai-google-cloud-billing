@@ -4,7 +4,7 @@ from helpers.prompts.visualization import (
     dataframe_visualization_code_prompt
 )
 
-def get_dataframe_viz_code(llm, query, df) -> str:
+def get_dataframe_viz_code(llm, query, df):
     """
     Returns a Python code snippet that will visualize a Pandas DataFrame.
 
@@ -21,4 +21,4 @@ def get_dataframe_viz_code(llm, query, df) -> str:
 
     visualization_code = llm.invoke(visualization_code_query)
 
-    return strip_markdown(visualization_code).strip()
+    return strip_markdown(visualization_code).strip(), visualization_code_query

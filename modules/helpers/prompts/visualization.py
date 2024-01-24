@@ -59,6 +59,7 @@ Prompt:
 The question asked was "{query}"
 The corresponding dataframe is:
 {df.to_markdown()}
+
 Visualization code:
 """
 
