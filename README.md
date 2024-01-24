@@ -12,4 +12,4 @@ The automation and documentation in this repo is based on my [Generative AI](htt
 
 This is a proof of concept setup and is not securely deployed. The Cloud Run service will be publicly available, so if you try the demo, make sure to delete the service when you're done. You can do that with the `make terraform_destroy_vertex_ai_billing_service` command.
 
-![Vertex AI Billing Demo](docs/images/vertex-ai-billing-demo.png)
+![Vertex AI Billing Demo](docs/images/01_vertex-ai-billing-demo.png)
