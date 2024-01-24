@@ -43,10 +43,12 @@ class VisualizationTestCase(TestCase):
         'total_cost': [324.631208, 128.644393, 31.970339, 4.732000, 1.587599]
     })
 
-    viz_code = get_dataframe_viz_code(llm, prompt, df)
+    viz_code, viz_code_prompt = get_dataframe_viz_code(llm, prompt, df)
 
     self.assertTrue(len(viz_code) > 0)
     self.assertTrue('import matplotlib.pyplot as plt' in viz_code)
+
+    self.assertTrue(len(viz_code_prompt) > 0)
 
     # test that the code snippet can be executed
     exec(viz_code)

@@ -26,7 +26,7 @@ Write a BigQuery Google Standard SQL query that answers the following question.
 For any service names mentioned, use the service description column.
 Today's date is {todays_date}.
 If a date/time range is necessary, use `BETWEEN` and the format `TIMESTAMP("2005-01-03 12:34:56+00")` when appropriate.
-If using DATE_SUB or TIMESTAMP_SUB, you cannot use the MONTH date part when th argument is TIMESTAMP type.
+If using DATE_SUB or TIMESTAMP_SUB, you cannot use the MONTH date part when the argument is TIMESTAMP type.
 
 Question: How much money have I spent on Vertex AI this year?
 

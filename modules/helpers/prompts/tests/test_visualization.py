@@ -78,6 +78,7 @@ The corresponding dataframe is:
 |  2 | Cloud Storage  |      31.9703 |
 |  3 | Maps API       |       4.732  |
 |  4 | BigQuery       |       1.5876 |
+
 Visualization code:
 """
 
