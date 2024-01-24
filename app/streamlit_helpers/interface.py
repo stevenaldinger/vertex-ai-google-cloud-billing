@@ -1,18 +1,14 @@
 # Local application/library specific imports
 import config.config as config
+from helpers.llm.bigquery import (
+    get_bigquery_query,
+    get_bigquery_error_resolution_query,
+)
 from helpers.llm.question_classification import (
     get_question_classification
 )
-from helpers.utils.markdown import strip_markdown
-from helpers.prompts.bigquery import (
-    create_bq_error_resolution_prompt_template,
-    create_bq_prompt_template,
-)
-from streamlit_helpers.bigquery import (
+from helpers.utils.bigquery import (
   get_dataframe_from_bq_query,
-)
-from streamlit_helpers.llm import (
-    create_bq_chain,
 )
 from streamlit_helpers.visualization import (
   get_visualization_image,
@@ -28,102 +24,102 @@ def create_interface(llm, bq_data):
     Creates a streamlit interface for the BigQuery Billing Bot.
     """
 
-    st.header("BigQuery Billing Bot with Vertex AI", divider="rainbow")
+    # get bq client for querying dataset
+    client = bq.Client(project=config.project)
+
+    st.header("GCP Billing with Vertex AI", divider="rainbow")
 
     st.subheader("Ask a question about billing")
 
     # billing question
     user_query = st.text_input(
-        "Enter question about billing: \n\n", key="user_query", value="What are my top 5 most expensive services used?"
+        "Question: \n\n", key="user_query", value="What are my top 5 most expensive services used?"
     )
 
     # ask question button
-    generate_t2t = st.button("Ask question", key="generate_t2t")
+    generate_t2t = st.button("Ask Question", key="generate_t2t")
 
     # generate answer
     if generate_t2t and user_query:
-        # st.write(prompt)
         with st.spinner("Generating answer..."):
-            first_tab1, first_tab2 = st.tabs(["Response", "Prompt"])
+            response_tab, sql_query_prompt_tab, sql_query_tab, viz_code_prompt_tab, viz_code_tab = st.tabs([
+                "Response",
+                "SQL Query Prompt",
+                "SQL Query",
+                "Visualization Code Prompt",
+                "Visualization Code",
+            ])
 
             question_class = get_question_classification(llm, user_query)
-            prompt_template = create_bq_prompt_template(user_query, question_class)
-            chain = create_bq_chain(llm, prompt_template)
 
-            # get bq client for querying dataset
-            client = bq.Client(project=config.project)
+            bq_sql_query, prompt = get_bigquery_query(llm, bq_data, user_query, question_class)
 
-            with first_tab1:
-                # Invoke the chain with the documents, and remove code backticks
-                _result = chain.invoke(bq_data)
-                result = strip_markdown(_result)
+            big_query_error = None
+            try:
+                df = get_dataframe_from_bq_query(client, bq_sql_query)
+            except Exception as e:
+                print("The following GoogleSQL code is invalid:")
+                print(bq_sql_query)
+                print("The following error was raised, trying to self correct:")
+                print(e)
+
+                bq_sql_query = get_bigquery_error_resolution_query(llm, bq_data, bq_sql_query, str(e))
 
                 try:
-                    result_df = get_dataframe_from_bq_query(client, result)
+                    df = get_dataframe_from_bq_query(client, bq_sql_query)
 
-                except Exception as e:
+                except Exception as e2:
                     print("The following GoogleSQL code is invalid:")
-                    print(result)
-                    print("The following error was raised, trying to self correct:")
-                    print(e)
+                    print(bq_sql_query)
+                    print("The following error was raised, giving up:")
+                    print(e2)
 
-                    prompt_template = create_bq_error_resolution_prompt_template(result, str(e))
+                    big_query_error = str(e2)
+                    df = None
 
-                    chain = create_bq_chain(llm, prompt_template)
+            visualization_code = ""
+            viz_code_prompt = ""
+            with response_tab:
+                if big_query_error is not None:
+                    st.write("Error:")
+                    st.markdown(f"```\n{big_query_error}\n```")
 
-                    # invoke the chain with the bq docs, and
-                    _result = chain.invoke(bq_data)
-                    # remove markdown code snippet backticks
-                    result = strip_markdown(_result)
+                    st.write("Failed GoogleSQL query:")
+                    st.markdown(f"```sql\n{bq_sql_query}\n```")
+                else:
+                    image_array, visualization_code, viz_code_prompt, visualization_error = get_visualization_image(llm, user_query, df)
 
-                    try:
-                        result_df = get_dataframe_from_bq_query(client, result)
+                    df_col, viz_col = st.columns(2)
 
-                    except Exception as e2:
-                        print("The following GoogleSQL code is invalid:")
-                        print(result)
-                        print("The following error was raised, giving up:")
-                        print(e2)
-
-                        st.write("GoogleSQL code is invalid:")
-                        st.markdown(_result)
-                        st.write("Error:")
-                        st.markdown(f"```{str(e2)}```")
-
-                        result_df = None
-
-                visualization_error = None
-                if result_df is not None:
-                    image_array, visualization_code, visualization_error = get_visualization_image(llm, user_query, result_df)
-
-                    col1, col2 = st.columns(2)
-
-                    with col1:
+                    with df_col:
                         st.header("DataFrame")
-                        st.markdown(result_df.to_markdown())
+                        st.markdown(df.to_markdown())
 
-                    with col2:
+                    with viz_col:
                         st.header("Visualization")
-                        viz_tab1, viz_tab2 = st.tabs(["Image", "Code"])
 
-                        with viz_tab1:
-                            if visualization_error is not None:
-                                st.write("Visualization failed:")
-                                st.markdown(f"```{visualization_error}```")
+                        if visualization_error is None:
+                            st.image(
+                                image=image_array,
+                                caption=None,
+                                width=None,
+                                use_column_width=None,
+                                clamp=False,
+                                channels="RGB",
+                                output_format="auto",
+                            )
+                        else:
+                            st.write("Visualization failed:")
+                            st.markdown(f"```{visualization_error}```")
 
-                            if visualization_error is None:
-                                st.image(
-                                    image=image_array,
-                                    caption=None,
-                                    width=None,
-                                    use_column_width=None,
-                                    clamp=False,
-                                    channels="RGB",
-                                    output_format="auto",
-                                )
+            with sql_query_prompt_tab:
+                st.markdown(prompt)
 
-                        with viz_tab2:
-                            st.markdown(f"```py\n{visualization_code}```")
+            with sql_query_tab:
+                st.markdown(f"```sql\n{bq_sql_query}\n```")
 
-            with first_tab2:
-                st.text(prompt_template.format(content=bq_data))
+            with viz_code_prompt_tab:
+                st.markdown(viz_code_prompt)
+
+            with viz_code_tab:
+                st.markdown(f"```py\n{visualization_code}\n```")
