@@ -1,7 +1,7 @@
 # Local application/library specific imports
 import config.config as config
 
-from streamlit_helpers.bigquery import load_bigquery_data
+from helpers.utils.bigquery import load_bigquery_data
 from streamlit_helpers.interface import create_interface
 from streamlit_helpers.llm import initialize_llm
 
@@ -29,7 +29,10 @@ def load_bigquery():
     Loads the BigQuery dataset schema into a DataFrame.
     """
 
-    return load_bigquery_data()
+    return load_bigquery_data(
+        project=config.project,
+        dataset=config.bigquery_dataset,
+    )
 
 # create streamlit interface
 #
