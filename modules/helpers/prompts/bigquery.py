@@ -65,7 +65,7 @@ def create_bq_prompt_template(question: str, question_class: str) -> PromptTempl
     # deals with the LLM's tendency to generate invalid GoogleSQL code
     date_range_instructions = """\
 If a date/time range is necessary, use `BETWEEN` and the format `TIMESTAMP("2005-01-03 12:34:56+00")` when appropriate.
-If using DATE_SUB or TIMESTAMP_SUB, you cannot use the MONTH date part when th argument is TIMESTAMP type.
+If using DATE_SUB or TIMESTAMP_SUB, you cannot use the MONTH date part when the argument is TIMESTAMP type.
 """
 
     template = f"""\
