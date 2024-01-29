@@ -1,6 +1,6 @@
 # Vertex AI x GCP Billing (BigQuery Exports)
 
-This repository contains a service that can be deployed to Cloud Run to integrate Vertex AI's Gemini Pro model with Google Cloud Billing Exports in BigQuery to enable you to ask natural language questions about your billing data.
+This is the companion repository for my [Vertex AI and BigQuery for Natural Language Exploration of GCP Billing Data](https://medium.com/teamsnap-engineering/vertex-ai-and-bigquery-for-natural-language-exploration-of-gcp-billing-data-7f96b13c7a7e) article and contains a service that can be deployed to Cloud Run to integrate Vertex AI's Gemini Pro model with Google Cloud Billing Exports in BigQuery to enable you to ask natural language questions about your billing data.
 
 If you already have billing set up to be exported to BigQuery, everything you need to run this service is in this repository.
 
